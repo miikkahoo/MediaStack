@@ -1,0 +1,239 @@
+version: "3.6"
+services:
+  portainer:
+    image: portainer/portainer
+    container_name: portainer
+    restart: always
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${USERDIR}/docker/portainer/data:/data
+      - ${USERDIR}/docker/shared:/shared
+    environment:
+      - TZ=${TZ}
+
+  organizr:
+    container_name: organizr
+    restart: always
+    image: lsiocommunity/organizr
+    volumes:
+      - ${USERDIR}/docker/organizr:/config
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "81:81"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  watchtower:
+    container_name: watchtower
+    restart: always
+    image: v2tec/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --schedule "0 0 4 * * *" --cleanup
+
+  qbittorrent:
+    image: "linuxserver/qbittorrent"
+    container_name: "qbittorrent"
+    volumes:
+      - ${USERDIR}/docker/qbittorrent:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/media:/media
+      - ${USERDIR}/Data:/Data
+    ports:
+      - "9001:9001"
+      - "7777:7777"
+      - "7777:7777/udp"
+    restart: always
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK_SET=002
+      - WEBUI_PORT=9001
+
+  radarr:
+    image: "linuxserver/radarr"
+    container_name: "radarr"
+    volumes:
+      - ${USERDIR}/docker/radarr:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/media/movies:/movies
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Data:/Data
+    ports:
+      - "9002:7878"
+    restart: always
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  sonarr:
+    image: "linuxserver/sonarr"
+    container_name: "sonarr"
+    volumes:
+      - ${USERDIR}/docker/sonarr:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/media/tvshows:/tv
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Data:/Data
+    ports:
+        - "9003:8989"
+    restart: always
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  lidarr:
+    container_name: "lidarr"
+    image: "volikon/lidarr"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "8686:8686"
+    restart: always
+    volumes:
+      - ${USERDIR}/docker/lidarr:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/media/tvshows:/tv
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Data:/Data
+
+  plexms:
+    container_name: plexms
+    restart: always
+    image: plexinc/pms-docker
+    volumes:
+      - ${USERDIR}/docker/plexms:/config
+      - ${USERDIR}/Downloads/plex_tmp:/transcode
+      - /media/media:/media
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/Data:/Data
+    ports:
+      - "32400:32400/tcp"
+      - "3005:3005/tcp"
+      - "8324:8324/tcp"
+      - "32469:32469/tcp"
+      - "1900:1900/udp"
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+    environment:
+      - TZ=${TZ}
+      - HOSTNAME="Docker Plex"
+      - PLEX_CLAIM=${CLAIM}
+      - PLEX_UID=${PUID}
+      - PLEX_GID=${PGID}
+      - ADVERTISE_IP="http://192.168.1.109:32400/"
+      - ALLOWED_NETWORKS=192.168.1.0/24,192.168.178.0/24
+
+  tautulli:
+    container_name: tautulli
+    restart: always
+    image: linuxserver/tautulli
+    volumes:
+      - ${USERDIR}/docker/tautulli/config:/config
+      - ${USERDIR}/docker/tautulli/logs:/logs:ro
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "9004:8181"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  jackett:
+    image: "linuxserver/jackett"
+    container_name: "jackett"
+    volumes:
+      - ${USERDIR}/docker/jackett:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "9005:9117"
+    restart: always
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  Google-MusicManager:
+    hostname: google-musicmanager
+    image: ruippeixotog/google-musicmanager
+    container_name: google-musicmanager
+    restart: always
+    ports:
+      - "5900:5900"
+    volumes:
+      - ${USERDIR}/docker/google-musicmanager:/appdata
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Data/Plex/Music:/music
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - SERVER_NAME=${GNAME}
+      - GOOGLE_USER=${GUSER}
+      - GOOGLE_PASS=${GPASS}
+
+
+  traefik:
+    hostname: traefik
+    image: traefik:latest
+    container_name: traefik
+    restart: always
+    domainname: ${DOMAINNAME}
+    networks:
+      - default
+      - traefik_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+#      - "8080:8080"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_HOSTED_ZONE_ID=${AWS_HOSTED_ZONE_ID}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=traefik"
+      - "traefik.frontend.rule=Host:traefik.${DOMAINNAME}"
+#      - "traefik.frontend.rule=Host:${DOMAINNAME}; PathPrefixStrip: /traefik"
+      - "traefik.port=8080"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${USERDIR}/docker/traefik:/etc/traefik
+      - ${USERDIR}/docker/shared:/shared
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
+  default:
+    driver: bridge
