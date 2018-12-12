@@ -1,0 +1,164 @@
+version: "3.6"
+services:
+  qbittorrent:
+    image: "linuxserver/qbittorrent"
+    container_name: "qbittorrent"
+    volumes:
+      - ${USERDIR}/docker/qbittorrent:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/media:/media
+      - ${USERDIR}/Data:/Data
+    ports:
+      - "9001:9001"
+      - "7777:7777"
+      - "7777:7777/udp"
+    restart: always
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK_SET=002
+      - WEBUI_PORT=9001
+
+  radarr:
+    image: "linuxserver/radarr"
+    container_name: "radarr"
+    volumes:
+      - ${USERDIR}/docker/radarr:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/media/movies:/movies
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Data:/Data
+    ports:
+      - "9002:7878"
+    restart: always
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  sonarr:
+    image: "linuxserver/sonarr"
+    container_name: "sonarr"
+    volumes:
+      - ${USERDIR}/docker/sonarr:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/media/tvshows:/tv
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Data:/Data
+    ports:
+        - "9003:8989"
+    restart: always
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  lidarr:
+    container_name: "lidarr"
+    image: "volikon/lidarr"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "8686:8686"
+    restart: always
+    volumes:
+      - ${USERDIR}/docker/lidarr:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/media/tvshows:/tv
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Data:/Data
+
+  plexms:
+    container_name: plexms
+    restart: always
+    image: plexinc/pms-docker
+    volumes:
+      - ${USERDIR}/docker/plexms:/config
+      - ${USERDIR}/Downloads/plex_tmp:/transcode
+      - /media/media:/media
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Downloads/completed:/downloads
+      - ${USERDIR}/Data:/Data
+    ports:
+      - "32400:32400/tcp"
+      - "3005:3005/tcp"
+      - "8324:8324/tcp"
+      - "32469:32469/tcp"
+      - "1900:1900/udp"
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+    environment:
+      - TZ=${TZ}
+      - HOSTNAME="Docker Plex"
+      - PLEX_CLAIM=${CLAIM}
+      - PLEX_UID=${PUID}
+      - PLEX_GID=${PGID}
+      - ADVERTISE_IP="http://192.168.1.109:32400/"
+      - ALLOWED_NETWORKS=192.168.1.0/24,192.168.178.0/24
+
+  tautulli:
+    container_name: tautulli
+    restart: always
+    image: linuxserver/tautulli
+    volumes:
+      - ${USERDIR}/docker/tautulli/config:/config
+      - ${USERDIR}/docker/tautulli/logs:/logs:ro
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "9004:8181"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  jackett:
+    image: "linuxserver/jackett"
+    container_name: "jackett"
+    volumes:
+      - ${USERDIR}/docker/jackett:/config
+      - ${USERDIR}/Downloads/completed:/downloads
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+    ports:
+      - "9005:9117"
+    restart: always
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  Google-MusicManager:
+    hostname: google-musicmanager
+    image: ruippeixotog/google-musicmanager
+    container_name: google-musicmanager
+    restart: always
+    ports:
+      - "5900:5900"
+    volumes:
+      - ${USERDIR}/docker/google-musicmanager:/appdata
+      - "/etc/localtime:/etc/localtime:ro"
+      - ${USERDIR}/docker/shared:/shared
+      - ${USERDIR}/Data/Plex/Music:/music
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - SERVER_NAME=${GNAME}
+      - GOOGLE_USER=${GUSER}
+      - GOOGLE_PASS=${GPASS}
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
+  default:
+    driver: bridge
